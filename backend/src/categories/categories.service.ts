@@ -1,4 +1,10 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from '../../generated/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -34,7 +40,16 @@ export class CategoriesService {
 
   async remove(userId: string, id: string) {
     await this.findOneOwned(userId, id);
-    await this.prisma.category.delete({ where: { id } });
+    try {
+      await this.prisma.category.delete({ where: { id } });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2003') {
+        throw new ConflictException(
+          '이 카테고리를 사용하는 내역이 있어 삭제할 수 없습니다.',
+        );
+      }
+      throw err;
+    }
     return { success: true };
   }
 }
