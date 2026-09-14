@@ -8,14 +8,19 @@ import { TransactionForm } from "@/components/transaction-form";
 
 const formatWon = (value: number) => `${Math.round(value).toLocaleString("ko-KR")}원`;
 
-function useCurrentMonth() {
+function currentYearMonth() {
   const now = new Date();
   return { year: now.getFullYear(), month: now.getMonth() + 1 };
 }
 
+function shiftMonth(year: number, month: number, delta: number) {
+  const date = new Date(year, month - 1 + delta, 1);
+  return { year: date.getFullYear(), month: date.getMonth() + 1 };
+}
+
 export default function DashboardPage() {
   const { token } = useAuth();
-  const { year, month } = useCurrentMonth();
+  const [{ year, month }, setYearMonth] = useState(currentYearMonth);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -60,9 +65,25 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold">
-          {year}년 {month}월
-        </h1>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setYearMonth(shiftMonth(year, month, -1))}
+            className="rounded-md border border-gray-300 px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
+            aria-label="이전 달"
+          >
+            ‹
+          </button>
+          <h1 className="w-28 text-center text-lg font-semibold">
+            {year}년 {month}월
+          </h1>
+          <button
+            onClick={() => setYearMonth(shiftMonth(year, month, 1))}
+            className="rounded-md border border-gray-300 px-2 py-1 text-sm text-gray-600 hover:bg-gray-100"
+            aria-label="다음 달"
+          >
+            ›
+          </button>
+        </div>
         <button
           onClick={() => setShowForm(true)}
           className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
